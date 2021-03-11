@@ -37,6 +37,9 @@ This bookmarklet currently only works on Sketchfab.com. Features include:
 - Make it work with the Handsfree Plugin Repository so that you don't need to update the bookmarklet
 - Make it work generally (so that you get basic functionality on every site)
 
+## Links to try
+- [Sketchfab.com](Sketchfab.com) - For the best experience, visit an [Explore](https://sketchfab.com/3d-models?sort_by=-likeCount) or [Search](https://sketchfab.com/search?q=museum&sort_by=-relevance&type=models) page, that way you can try multiple sketches at once
+
 ## How to build the bookmarklet yourself
 
 1. Right click bookmark bar and click <kbd>Add Page...</kbd>
