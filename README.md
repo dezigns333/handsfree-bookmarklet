@@ -40,7 +40,7 @@ This bookmarklet currently only works on Sketchfab.com. Features include:
 ## Links to try
 - [Sketchfab.com](Sketchfab.com) - For the best experience, visit an [Explore](https://sketchfab.com/3d-models?sort_by=-likeCount) or [Search](https://sketchfab.com/search?q=museum&sort_by=-relevance&type=models) page, that way you can try multiple sketches at once
 
-## How to build the bookmarklet yourself
+## How to add the bookmarklet to your browser
 
 1. Right click bookmark bar and click <kbd>Add Page...</kbd>
 2. In the URL field, paste the below code
