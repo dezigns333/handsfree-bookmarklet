@@ -30,6 +30,13 @@ This bookmarklet currently only works on Sketchfab.com. Features include:
 
 [See my master plan](https://handsfreejs.org/about/)
 
+## Roadmap
+
+- Add a progress bar or loader
+- Add a code editor so that you can script custom plugins and save them to localStorage
+- Make it work with the Handsfree Plugin Repository so that you don't need to update the bookmarklet
+- Make it work generally (so that you get basic functionality on every site)
+
 ## How to build the bookmarklet yourself
 
 1. Right click bookmark bar and click <kbd>Add Page...</kbd>
