@@ -36,54 +36,60 @@
     }
     handsfree.use('sketchfab', {
       onFrame: ({hands}) => {
-        if (!hands.multiHandLandmarks) return
+        if (!hands.pointer) return
     
         // Pan the sketch
-        hands.pointer.forEach((pointer, hand) => {
-          if (pointer.isVisible && hands.pinchState[hand][0]) {
-            // Get the event and element to send events to
-            const event = eventMap[hands.pinchState[hand][0]]
-            const $el = document.elementFromPoint(pointer.x, pointer.y)
+        if (hands.pointer[1].isVisible && hands.pinchState[1][0]) {
+          // Get the event and element to send events to
+          const event = eventMap[hands.pinchState[1][0]]
+          const $el = document.elementFromPoint(hands.pointer[1].x, hands.pointer[1].y)
+          
+          // Dispatch the event
+          if ($el) {
+            let $canvas
             
-            // Dispatch the event
-            if ($el) {
-              let $canvas
-              
-              // Find the canvas inside the iframe
-              if ($el.tagName.toLocaleLowerCase() === 'canvas' && $el.classList.contains('canvas')) {
-                $canvas = $el
-              } else if ($el.tagName.toLocaleLowerCase() === 'iframe' && $el.src.startsWith('https://sketchfab.com/models')) {
-                $canvas = $el.contentWindow.document.querySelector('canvas.canvas')
-              }
-    
-              if ($canvas) {
-                $canvas.dispatchEvent(
-                  new MouseEvent(event, {
-                    bubbles: true,
-                    cancelable: true,
-                    clientX: pointer.x,
-                    clientY: pointer.y
-                  })
-                )  
-              }
+            // Find the canvas inside the iframe
+            if ($el.tagName.toLocaleLowerCase() === 'canvas' && $el.classList.contains('canvas')) {
+              $canvas = $el
+            } else if ($el.tagName.toLocaleLowerCase() === 'iframe' && $el.src.startsWith('https://sketchfab.com/models')) {
+              $canvas = $el.contentWindow.document.querySelector('canvas.canvas')
+            }
+  
+            if ($canvas) {
+              $canvas.dispatchEvent(
+                new MouseEvent(event, {
+                  bubbles: true,
+                  cancelable: true,
+                  clientX: hands.pointer[1].x,
+                  clientY: hands.pointer[1].y
+                })
+              )  
             }
           }
+        }
 
-          // Click on things
-          // if (hands.pinchState[0][0] === 'start' && pointer.x) {
-          //   const $el = document.elementFromPoint(pointer.x, pointer.y)
-          //   if ($el) {
-          //     $el.dispatchEvent(
-          //       new MouseEvent('click', {
-          //         bubbles: true,
-          //         cancelable: true,
-          //         clientX: pointer.x,
-          //         clientY: pointer.y
-          //       })
-          //     )
-          //   }
-          // }
-        })
+        // Click on things
+        if (hands.pinchState[1][0] === 'start' && hands.pointer[1].x) {
+          const $el = document.elementFromPoint(hands.pointer[1].x, hands.pointer[1].y)
+          console.log($el, 'click')
+          if ($el && $el.classList.contains('c-model-360-preview')) {
+            $el.dispatchEvent(
+              new MouseEvent('click', {
+                bubbles: true,
+                cancelable: true,
+                clientX: hands.pointer[1].x,
+                clientY: hands.pointer[1].y
+              })
+            )
+          }
+        }
+
+        // Escape key
+        if (hands.pinchState[0][3] === 'start') {
+          document.dispatchEvent(new KeyboardEvent('keydown', {
+            keyCode: 27
+          }))
+        }
       }
     })
 
@@ -99,7 +105,6 @@
     
         hands.pointer.forEach((pointer, n) => {
           // Only left hand
-          console.log('scroll')
           if (n) return
           
           // @fixme Get rid of n > origPinch.length
