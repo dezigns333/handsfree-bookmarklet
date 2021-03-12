@@ -29,15 +29,40 @@
     /**
      * Click and drag sketchfabs
      */
+    // Maps pinchStates to browser events
     const eventMap = {
       start: 'mousedown',
       held: 'mousemove',
       released: 'mouseup'
     }
+    
     handsfree.use('sketchfab', {
-      onFrame: ({hands}) => {
+      // The current canvas (set after rotation)
+      $currentSketch: null,
+      
+      // The number of frames that a gesture has been held
+      // @todo make this a feature of handsfree.js
+      gestureLoops: {
+        pointLeft: 0,
+        pointRight: 0
+      },
+
+      /**
+       * Runs on every frame
+       */
+      onFrame ({hands}) {
         if (!hands.pointer) return
     
+        this.maybeRotate(hands)
+        this.maybeClick(hands)
+        this.maybeEscape(hands)
+        this.maybePageAnnotations(hands)
+      },
+
+      /**
+       * Rotate with right index
+       */
+      maybeRotate (hands) {
         // Pan the sketch
         if (hands.pointer[1].isVisible && hands.pinchState[1][0]) {
           // Get the event and element to send events to
@@ -56,6 +81,7 @@
             }
   
             if ($canvas) {
+              this.$currentSketch = $canvas
               $canvas.dispatchEvent(
                 new MouseEvent(event, {
                   bubbles: true,
@@ -67,11 +93,15 @@
             }
           }
         }
+      },
 
+      /**
+       * Click on things with lef tindex
+       */
+      maybeClick (hands) {
         // Click on things
         if (hands.pinchState[1][0] === 'start' && hands.pointer[1].x) {
           const $el = document.elementFromPoint(hands.pointer[1].x, hands.pointer[1].y)
-          console.log($el, 'click')
           if ($el && $el.classList.contains('c-model-360-preview')) {
             $el.dispatchEvent(
               new MouseEvent('click', {
@@ -83,14 +113,57 @@
             )
           }
         }
+      },
 
+      /**
+       * Trigger Esc with left pinky
+       */
+      maybeEscape (hands) {
         // Escape key
         if (hands.pinchState[0][3] === 'start') {
           document.dispatchEvent(new KeyboardEvent('keydown', {
             keyCode: 27
           }))
         }
-      }
+      },
+
+      /**
+       * Change annotations
+       */
+       maybePageAnnotations (hands) {
+        // Point right
+        if (hands.gesture[0]?.name === 'pointRight' && this.$currentSketch && this.gestureLoops.pointRight) {
+          this.nextAnnotation()
+          this.gestureLoops.pointRight = 0
+        } else if (hands.gesture[0]?.name !== 'pointRight' || hands.gesture[1]?.name !== 'pointRight') {
+          this.gestureLoops.pointRight++
+        }
+
+        // Point left
+        if (hands.gesture[0]?.name === 'pointLeft' && this.$currentSketch && this.gestureLoops.pointLeft) {
+          this.prevAnnotation()
+          this.gestureLoops.pointLeft = 0
+        } else if (hands.gesture[0]?.name !== 'pointLeft' || hands.gesture[1]?.name !== 'pointLeft') {
+          this.gestureLoops.pointLeft++
+        }
+      },
+
+      /**
+       * Page annotations
+       */
+      prevAnnotation: handsfree.throttle(function () {
+        this.$currentSketch.dispatchEvent(new KeyboardEvent('keypress', {
+          bubbles: true,
+          keyCode: 74
+        }))
+      }, 500, {trailing: false}),
+
+      nextAnnotation: handsfree.throttle(function () {
+        this.$currentSketch.dispatchEvent(new KeyboardEvent('keypress', {
+          bubbles: true,
+          keyCode: 75
+        }))
+      }, 500, {trailing: false})
     })
 
     /**
@@ -135,6 +208,14 @@
         })
       })
     }
+
+    /**
+     * Gestures
+     */
+    // Point right with two fingers 👉
+    handsfree.useGesture({"name":"pointRight","algorithm":"fingerpose","models":"hands","confidence":7.5,"description":[["addCurl","Thumb","NoCurl",1],["addDirection","Thumb","HorizontalLeft",1],["addDirection","Thumb","DiagonalDownLeft",0.6666666666666666],["addCurl","Index","NoCurl",1],["addDirection","Index","HorizontalLeft",1],["addDirection","Index","DiagonalUpLeft",0.034482758620689655],["addCurl","Middle","NoCurl",1],["addDirection","Middle","HorizontalLeft",1],["addDirection","Middle","DiagonalUpLeft",0.07142857142857142],["addCurl","Ring","FullCurl",1],["addDirection","Ring","HorizontalLeft",1],["addCurl","Pinky","FullCurl",1],["addDirection","Pinky","HorizontalLeft",1],["addDirection","Pinky","DiagonalDownLeft",0.15384615384615385],["setWeight","Index",2],["setWeight","Middle",2]],"enabled":true})
+    // Point left with two fingers 👈
+    handsfree.useGesture({"name":"pointLeft","algorithm":"fingerpose","models":"hands","confidence":7.5,"description":[["addCurl","Thumb","NoCurl",0.42857142857142855],["addCurl","Thumb","HalfCurl",1],["addDirection","Thumb","HorizontalRight",1],["addCurl","Index","NoCurl",1],["addDirection","Index","HorizontalRight",1],["addDirection","Index","DiagonalUpRight",0.42857142857142855],["addCurl","Middle","NoCurl",1],["addDirection","Middle","HorizontalRight",1],["addDirection","Middle","DiagonalUpRight",0.42857142857142855],["addCurl","Ring","FullCurl",1],["addDirection","Ring","HorizontalRight",1],["addDirection","Ring","DiagonalUpRight",0.07142857142857142],["addCurl","Pinky","FullCurl",1],["addDirection","Pinky","HorizontalRight",1],["addDirection","Pinky","DiagonalDownRight",0.034482758620689655]]})
 
     // Start Handsfree
     handsfree.start()
